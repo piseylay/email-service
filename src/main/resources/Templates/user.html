@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Student Details</title>
+  </head>
+  <body>
+  <img class="logo" src="images/logo.png"/>
+      <div>
+        <p>User ID : <span th:text="${user}"></span></p>
+        <p>UserName : <span th:text="${userName}"></span></p>
+        <p>Email : <span th:text="${email}"></span></p>
+        <p>Password : <span th:text="${password}"></span></p>
+      </div>
+  </body>
+</html>

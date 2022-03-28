@@ -2,20 +2,37 @@ package com.ig.email.service.implement
 
 import com.ig.email.controller.UserController
 import com.ig.email.model.custom.ResponseObject
+import com.ig.email.repository.UserRepository
 import com.ig.email.service.EmailService
+import com.ig.email.util.PdfGenaratorUtil
 import freemarker.template.Configuration
 import freemarker.template.Template
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.Resource
+import org.springframework.core.io.UrlResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.servlet.ModelAndView
+import java.nio.file.Path
+import java.nio.file.Paths
 import javax.mail.internet.InternetAddress
 import javax.mail.util.ByteArrayDataSource
 
 @Service
 class EmailServiceImpl : EmailService {
+
+    @Autowired
+    lateinit var userRepository: UserRepository
+
+    @Autowired
+    lateinit var pdfGenaratorUtil: PdfGenaratorUtil
 
     @Autowired
     lateinit var mailSender: JavaMailSender
@@ -24,15 +41,12 @@ class EmailServiceImpl : EmailService {
     lateinit var configuration: Configuration
 
     @Autowired
-    lateinit var userController: UserController
-
-    @Autowired
     lateinit var response: ResponseObject
 
     @Value( "\${mail_sender_name}")
     private val mailSenderName: String? = null
 
-    @Value("\${spring.mail.username}")
+    @Value("\${mail.server.username}")
     private val emailAddress: String? = null
 
     @Throws(Exception::class)
@@ -50,7 +64,7 @@ class EmailServiceImpl : EmailService {
     override fun sendEmailWithAttachment(toEmail: Array<InternetAddress>, subject: String, message: String, file: MultipartFile): MutableMap<String, Any> {
 
         synchronized(this) {
-            val listUser = userController.getAllUser()
+//            val listUser = getAllUser()
             val html: Template = configuration.getTemplate("test.html")
 
 //            val html = listUser!!.view
