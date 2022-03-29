@@ -23,7 +23,7 @@ class UserServiceImpl : UserService {
     lateinit var pdfGenaratorUtil: PdfGenaratorUtil
     override fun getUserInfoPdf(id: Long): ResponseEntity<*>? {
         val user = userRepository.findById(id).orElse(null)
-            ?: throw Exception("Student not present")
+            ?: throw Exception("User not present")
         val userMap: MutableMap<String, Any> = HashMap<String, Any>()
         userMap["ID"] = user.id.toString()
         userMap["userName"] = user.userName.toString()

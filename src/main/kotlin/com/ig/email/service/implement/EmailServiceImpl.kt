@@ -1,11 +1,11 @@
 package com.ig.email.service.implement
 
+import com.ig.email.config.MailSenderConfig
 import com.ig.email.model.custom.ResponseObject
 import com.ig.email.repository.UserRepository
 import com.ig.email.service.EmailService
 import freemarker.template.Configuration
 import freemarker.template.Template
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
@@ -15,28 +15,20 @@ import javax.mail.internet.InternetAddress
 import javax.mail.util.ByteArrayDataSource
 
 @Service
-class EmailServiceImpl : EmailService {
-
-    @Autowired
-    lateinit var mailSender: JavaMailSender
-
-    @Autowired
-    lateinit var configuration: Configuration
-
-    @Autowired
-    lateinit var response: ResponseObject
-
-    @Autowired
-    lateinit var userRepository: UserRepository
+class EmailServiceImpl constructor(
+    private var mailSender: JavaMailSender,
+    private var mailSenderConfig: MailSenderConfig,
+    private var configuration: Configuration,
+    private var response: ResponseObject,
+    private var userRepository: UserRepository,
+) : EmailService {
 
     @Value( "\${mail_sender_name}")
     private val mailSenderName: String? = null
 
-    @Value("\${mail.server.username}")
-    private val emailAddress: String? = null
-
     @Throws(Exception::class)
     override fun sendEmailToUser(toEmail: Array<InternetAddress>, subject: String, message: String): MutableMap<String, Any> {
+        val emailAddress =  mailSenderConfig.emailConfig.username
         val msg = mailSender.createMimeMessage()
         val helper = MimeMessageHelper(msg, true)
         helper.setFrom(InternetAddress("$mailSenderName ${"<"} $emailAddress ${">"}"))
@@ -50,10 +42,8 @@ class EmailServiceImpl : EmailService {
     override fun sendEmailWithAttachment(toEmail: Array<InternetAddress>, subject: String, message: String, file: MultipartFile): MutableMap<String, Any> {
 
         synchronized(this) {
-//            val listUser = getAllUser()
+            val emailAddress =  mailSenderConfig.emailConfig.username
             val html: Template = configuration.getTemplate("test.html")
-
-//            val html = listUser!!.view
             val msg = mailSender.createMimeMessage()
             val helper = MimeMessageHelper(msg, true)
             helper.setFrom(InternetAddress("$mailSenderName ${"<"} $emailAddress ${">"}"))
@@ -68,6 +58,7 @@ class EmailServiceImpl : EmailService {
     }
 
     override fun sendEmailFromDatabase(): MutableMap<String, Any> {
+        val emailAddress =  mailSenderConfig.emailConfig.username
         val user = userRepository.findAll()
         val toEmail = user.forEach {
             val subject = "Hello"
