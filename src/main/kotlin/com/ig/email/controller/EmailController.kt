@@ -3,10 +3,7 @@ package com.ig.email.controller
 import com.ig.email.model.custom.ResponseObject
 import com.ig.email.service.EmailService
 import org.springframework.core.task.TaskExecutor
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import javax.mail.internet.InternetAddress
 
@@ -28,6 +25,13 @@ class EmailController constructor(
     fun sendEmailWithAttachment(@RequestParam toEmail: Array<InternetAddress>, subject: String, message: String, file: MultipartFile): MutableMap<String, Any> {
         taskExecutor.execute {
             emailService.sendEmailWithAttachment(toEmail, subject, message, file)
+        }
+        return response.responseStatusCode(200, "Success!!!")
+    }
+    @GetMapping("/all")
+    fun sendEmailFromDatabase(): MutableMap<String, Any> {
+        taskExecutor.execute {
+            emailService.sendEmailFromDatabase()
         }
         return response.responseStatusCode(200, "Success!!!")
     }
