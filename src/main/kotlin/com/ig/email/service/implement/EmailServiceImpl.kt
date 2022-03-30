@@ -1,18 +1,24 @@
 package com.ig.email.service.implement
 
 import com.ig.email.config.MailSenderConfig
+import com.ig.email.model.User
 import com.ig.email.model.custom.ResponseObject
 import com.ig.email.repository.UserRepository
 import com.ig.email.service.EmailService
 import freemarker.template.Configuration
-import freemarker.template.Template
+import freemarker.template.TemplateException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import java.io.IOException
+import java.io.StringWriter
+import java.util.*
 import javax.mail.internet.InternetAddress
 import javax.mail.util.ByteArrayDataSource
+import kotlin.collections.HashMap
+
 
 @Service
 class EmailServiceImpl constructor(
@@ -25,10 +31,10 @@ class EmailServiceImpl constructor(
 
     @Value( "\${mail_sender_name}")
     private val mailSenderName: String? = null
+    private val emailAddress = mailSenderConfig.emailConfig.username
 
     @Throws(Exception::class)
     override fun sendEmailToUser(toEmail: Array<InternetAddress>, subject: String, message: String): MutableMap<String, Any> {
-        val emailAddress =  mailSenderConfig.emailConfig.username
         val msg = mailSender.createMimeMessage()
         val helper = MimeMessageHelper(msg, true)
         helper.setFrom(InternetAddress("$mailSenderName ${"<"} $emailAddress ${">"}"))
@@ -42,8 +48,8 @@ class EmailServiceImpl constructor(
     override fun sendEmailWithAttachment(toEmail: Array<InternetAddress>, subject: String, message: String, file: MultipartFile): MutableMap<String, Any> {
 
         synchronized(this) {
-            val emailAddress =  mailSenderConfig.emailConfig.username
-            val html: Template = configuration.getTemplate("test.html")
+//            val html: Template = configuration.getTemplate("user.html")
+            val html = getEmailContent()
             val msg = mailSender.createMimeMessage()
             val helper = MimeMessageHelper(msg, true)
             helper.setFrom(InternetAddress("$mailSenderName ${"<"} $emailAddress ${">"}"))
@@ -53,12 +59,20 @@ class EmailServiceImpl constructor(
             val attachment = ByteArrayDataSource(file.inputStream, "application/octet-stream")
             helper.addAttachment(file.originalFilename!!, attachment)
             mailSender.send(msg)
-            return response.responseStatusCode(200, "Success!!!!!!!!!")
+            return response.responseStatusCode(200, "Mail was sent successfully to $toEmail")
         }
     }
 
+    @Throws(IOException::class, TemplateException::class)
+    fun getEmailContent(): String? {
+        val stringWriter = StringWriter()
+        val model: MutableMap<String, Any> = HashMap()
+        model["users"] = userRepository.findById(1).get()
+        configuration.getTemplate("test.html").process(model, stringWriter)
+        return stringWriter.buffer.toString()
+    }
+
     override fun sendEmailFromDatabase(): MutableMap<String, Any> {
-        val emailAddress =  mailSenderConfig.emailConfig.username
         val user = userRepository.findAll()
         val toEmail = user.forEach {
             val subject = "Hello"

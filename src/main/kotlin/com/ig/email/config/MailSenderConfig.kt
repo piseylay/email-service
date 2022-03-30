@@ -11,6 +11,7 @@ import org.springframework.core.env.Environment
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.JavaMailSenderImpl
 import java.io.IOException
+import java.util.*
 
 @Configuration
 class MailSenderConfig constructor(
@@ -31,6 +32,7 @@ class MailSenderConfig constructor(
     override fun setEnvironment(environment: Environment) {
         this.environment = environment
     }
+    private val JAVA_MAIL_FILE = "classpath:mail/javamail.properties"
 
     @Bean
     @Throws(IOException::class)
@@ -43,6 +45,9 @@ class MailSenderConfig constructor(
         mailSender.username = this.environment!!.getProperty("mail.server.username","${emailConfig.username}")
         mailSender.password = this.environment!!.getProperty("mail.server.password","${emailConfig.password}")
 
+        val javaMailProperties = Properties()
+        javaMailProperties.load(applicationContext!!.getResource(JAVA_MAIL_FILE).inputStream)
+        mailSender.javaMailProperties = javaMailProperties
         return mailSender
     }
 }
